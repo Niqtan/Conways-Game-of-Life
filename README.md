@@ -1,4 +1,4 @@
-# Conway-s-Game-of-Life
+# Conways-Game-of-Life
 A version of Conway's Game of LIfe made in C
 
 To do list for tomorrow: 02-01-2025:
