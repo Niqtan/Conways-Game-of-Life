@@ -1,12 +1,14 @@
 #include <stdio.h>
 #include <SDL.h>
-#include <header.c>
 #include <stdlib.h>
 
 int i, j;
 
-int init_SDL() {
-        SDL_Window* window = NULL;
+#define SCREEN_WIDTH  640
+#define SCREEN_HEIGHT 480
+
+int init_SDL(SDL_Window* something) {
+        SDL_Window* window = something;
         SDL_Surface* screen_surface = NULL;
 
         if (SDL_Init( SDL_INIT_VIDEO ) < 0 ) 
@@ -52,7 +54,7 @@ int render_grid(char ***grid, int row, int col) {
     for (i = 0; i < row; i++) {
         for (j = 0; j < col; j++) {
             SDL_Surface* one_grid = grid[i][j];
-            SDL_Rect* box_rect = col;
+            SDL_Rect* box_rect = grid[i];
 
             if (grid[i][j] == 1) {
                 if (SDL_FillRect(one_grid, box_rect, SDL_MapRGB(one_grid->format, 0x00, 0x00, 0x00)) != 0) {
@@ -61,8 +63,4 @@ int render_grid(char ***grid, int row, int col) {
             }
         }
     }
-}
-
-int count_neighbors() {
-    
 }

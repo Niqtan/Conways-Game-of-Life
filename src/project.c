@@ -1,8 +1,8 @@
 #include <stdio.h>
 #include <SDL.h>
-#include <header.c>
 #include <stdlib.h>
 
+#include "header.h"
 
 /*
 Implementation of functions list
@@ -39,11 +39,11 @@ enum {
 char** grid;
 int i, j;
 
-#define SCREEN_WIDTH  640
-#define SCREEN_HEIGHT 480
 
 int main(int argc, char* args[]) {
     int min, max;
+
+    SDL_Window* window = NULL;
 
     //Create the 2d array
     grid = create_2d_array(row, col);
@@ -56,7 +56,7 @@ int main(int argc, char* args[]) {
         }
     }
 
-    if ((init_SDL()) != 0) {
+    if ((init_SDL(window)) != 0) {
         return -1;
     }
     else {
