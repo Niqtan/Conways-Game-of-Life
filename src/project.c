@@ -36,7 +36,7 @@ enum {
     col = 10
 };
 
-char** grid;
+int** grid;
 int i, j;
 
 
