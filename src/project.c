@@ -1,8 +1,8 @@
 #include <stdio.h>
-#include <SDL.h>
-#include <header.c>
 #include <stdlib.h>
+#include "SDL.h"
 
+#include "header.h"
 
 /*
 Implementation of functions list
@@ -10,13 +10,14 @@ Implementation of functions list
 1. The drawing function for drawing inside of the array
     - The draw function should implement the color of each square
     - It should fill the color of each square
-    - Perhaps we could use a library for this
 
 After implementing the grid and making it pretty, the rules comes next:
 
 Before the rules:
 - We want to be able make a next generation
-    Hence we create another array
+    Hence we create another array because we wouldn't want to rely on the
+    new state of the neighbour but rather the old state when it gets changed
+    in terms of states
 
 2. Function for counting the live neighbours
     - This can be a function or not
@@ -36,14 +37,14 @@ enum {
     col = 10
 };
 
-char** grid;
+int** grid;
 int i, j;
 
-#define SCREEN_WIDTH  640
-#define SCREEN_HEIGHT 480
 
 int main(int argc, char* args[]) {
     int min, max;
+
+    SDL_Window* window = NULL;
 
     //Create the 2d array
     grid = create_2d_array(row, col);
@@ -56,7 +57,7 @@ int main(int argc, char* args[]) {
         }
     }
 
-    if ((init_SDL()) != 0) {
+    if ((init_SDL(window)) != 0) {
         return -1;
     }
     else {
