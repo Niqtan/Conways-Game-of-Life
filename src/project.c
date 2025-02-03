@@ -45,27 +45,10 @@ int main(int argc, char* argv[]) {
             grid = (int**) (rand() % (max-min + 1) + min);
         }
     }
-
-    SDL_Event e; 
-    bool quit = false;
-    while( quit == false )
-    { while( SDL_PollEvent( &e ) ) { 
-    if( e.type == SDL_QUIT ) { 
-        quit = true;
-                } 
-            }
-        }
-
-    while (quit == false ) {
     init_SDL(window);
     
     //Render the grid
     render_grid(&grid, grid_row, grid_col, window);
-    }   
-
-    SDL_DestroyWindow(window);
-
-    SDL_Quit();
 
 }
 
@@ -87,8 +70,21 @@ init_SDL(SDL_Window* window) {
         
             SDL_UpdateWindowSurface(window);
 
+            SDL_Event e; 
+            bool quit = false;
+            while( quit == false )
+            { while( SDL_PollEvent( &e ) ) { 
+            if( e.type == SDL_QUIT ) { 
+                quit = true;
+                    } 
+                }
+            }
         }
 
+        SDL_DestroyWindow(window);
+
+        SDL_Quit();
+        
         return 0;
     }
 }
