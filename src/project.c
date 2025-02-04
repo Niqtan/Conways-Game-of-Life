@@ -124,6 +124,47 @@ render_grid(int ***grid, int row, int col, SDL_Window* window) {
             }
         }
     }
+    
+    next_gen_grid = create_2d_array(row, col);
+
+    for (i = 0; i < row; i++) {
+        for (j = 0; j < col; j++) {    
+            
+            //Dealing with the edges
+            if (i > row || j > col) {
+                //Condition for checking both conditions
+                (i > row) ? ((i + row) % row): ((j + col) % col);
+            }
+
+            if (i < 0 || j < 0) {
+                //Condition for checking both conditions
+                (i < 0) ? ((i + row) + 1): (j + col) + 1;
+            }
+            //Check out: What if both of them have the same condition?
+
+            grid = next_gen_grid;
+
+            neighbours = count_neighbours(&grid, i, j);
+        }
+    }
+
+}
+
+count_neighbours(int ***grid, int x, int y) {
+    /*
+    Count surrounding neighbours
+    
+    */
+   //i symbolizes rows, j for cols
+   int i, j, sum;
+
+   for (i = -1; i < 2; i++) {
+    for (j = -1; j < 2; j++) {
+        sum += *grid[i][j];  
+   }
+   sum -= *grid[x][y];
+   return sum;
+    }
 }
 
 

@@ -16,9 +16,10 @@ int i, j: for loop iteration purposes
 int grid_row, grid_col: fixed number of rows and columns
 int** grid: the 2D array 
 */
-int i, j,
+int i, j;
 int grid_row, grid_col;
-int** grid;
+int** grid, next_gen_grid;
+int neighbours;
 
 /* Init_SDL initalize the SDL2 window
 * @param a: window to be working on using a pointer to SDL_Window datatype
@@ -42,4 +43,10 @@ int** create_2d_array(int row, int col);
 */
 int render_grid(int ***grid, int row, int col, SDL_Window* window);
 
-int count_neighbours(int neighbours);
+/* count_neighbours: uses an algorithm to count surrounding neighbours position
+* @param a: The next generation grid
+* @param b: the current column number on the grid
+* @param c: the current row number on the grid
+* @return: int for the surrounding neighbours
+*/
+int count_neighbours(int ***grid, int x, int y);
