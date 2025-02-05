@@ -11,21 +11,30 @@
 #define CELL_WIDTH 10
 #define CELL_HEIGHT 10
 
+#define OR ||
+#define AND &&
+
+//Debugging
+FILE* log_file;
+
+
 /* Global variables
 int i, j: for loop iteration purposes
 int grid_row, grid_col: fixed number of rows and columns
 int** grid: the 2D array 
 */
+
+int min, max;
 int i, j;
 int grid_row, grid_col;
 int** grid, next_gen_grid;
-int neighbours;
+int sum;
+int neighbours, next_state;
 
 /* Init_SDL initalize the SDL2 window
-* @param a: window to be working on using a pointer to SDL_Window datatype
 * @return: an affirmation whether the initialization was successful
 */
-int init_SDL(SDL_Window* window);
+SDL_Window* init_SDL();
 
 /* create_2d_array: initialize a 2d array with rows and columns
 * @param a: the fixed number of rows to work with
@@ -41,7 +50,7 @@ int** create_2d_array(int row, int col);
 * @param d: window to be working on using a pointer to SDL_Window datatype
 * @return: confirmation if it was successful
 */
-int render_grid(int ***grid, int row, int col, SDL_Window* window);
+void render_grid(int **grid, int row, int col, SDL_Window* window);
 
 /* count_neighbours: uses an algorithm to count surrounding neighbours position
 * @param a: The next generation grid
@@ -49,4 +58,4 @@ int render_grid(int ***grid, int row, int col, SDL_Window* window);
 * @param c: the current row number on the grid
 * @return: int for the surrounding neighbours
 */
-int count_neighbours(int ***grid, int x, int y);
+int count_neighbours(int **grid, int x, int y);
