@@ -1,16 +1,28 @@
 #include "project.h"
 
+//2D Array variables
+int grid_row = 10;
+int grid_col = 10;
+
+//Debugging
+FILE* log_file;
+
+struct SDL2 {
+    SDL_Window* window;
+    SDL_Renderer* renderer;
+} foo;
+
 int main(int argc, char* argv[]) {
-    //Debugging
+    int min, max;
+    int i, j;
+
+    int** grid;
+
     log_file = fopen("debug.txt", "w+");
     if (log_file == NULL) {
         fprintf(log_file, "Failed to initialize the debugger\n");
         fflush(log_file);
     }
-    
-    //2D Array variables
-    grid_row = 10;
-    grid_col = 10;
 
     //Initialize the first 2d array
     grid = create_2d_array(grid_row, grid_col);
@@ -24,21 +36,24 @@ int main(int argc, char* argv[]) {
 
     for (i = 0; i < grid_row; i++) {
         for (j = 0; j < grid_col; j++) {
-            grid[i][j] = rand() % (max-min + 1) + min;
+
+            //The algorithm here is to generate a 1 or 0 depending on the rand num 
+            //So that picking of numbers really is random
+            grid[i][j] = (rand() % (max-min + 1)) + min;
         }
     }
 
     //Create a var with data type SDL_Window which
     //can either return an instance of window or NULL 
-    SDL_Window* window = init_SDL();
-    if (window == NULL) {
+    struct SDL2* Sigma_Boy = init_SDL();
+    if (Sigma_Boy->window == NULL) {
         fprintf(log_file, "Failed to initialize SDL\n");
         fflush(log_file);
         return 1;
     }
 
     //Initialize 
-    render_grid(grid, grid_row, grid_col, window);
+    render_grid(grid, Sigma_Boy->renderer);
 
     //An event to not close out the window unless
     //the X button on the top right has been pressed
@@ -52,16 +67,18 @@ int main(int argc, char* argv[]) {
         }
     }
 
-    SDL_DestroyWindow(window);
-    SDL_Quit();
+    free_2d_array(grid, grid_row);
+    kill_SDL2(Sigma_Boy->window, Sigma_Boy->renderer);
     fclose(log_file);
 
     return 0;
 }
 
 //Initalize the SDL2 window
-SDL_Window* init_SDL() {
-    SDL_Window* window = NULL;
+struct SDL2* init_SDL() {
+
+    struct SDL2 *AgentX =  &foo;
+    AgentX->window = NULL;
     if (SDL_Init( SDL_INIT_VIDEO ) < 0 ) 
     {
         fprintf(log_file, "Failed to initialize SDL: %s\n", SDL_GetError());
@@ -69,112 +86,127 @@ SDL_Window* init_SDL() {
         return;
     }
     else {
-        window = SDL_CreateWindow( "Conway's Game of Life", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, SCREEN_WIDTH, SCREEN_HEIGHT, SDL_WINDOW_SHOWN );
+        AgentX->window = SDL_CreateWindow( "Conway's Game of Life", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, SCREEN_WIDTH, SCREEN_HEIGHT, SDL_WINDOW_SHOWN );
         
-        if (window == NULL) {
+        if (AgentX->window == NULL) {
             fprintf(log_file, "Failed to see window: %s\n", SDL_GetError());
             fflush(log_file);
         }
         else {
-        SDL_Renderer* renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
-        if (renderer == NULL) {
+        AgentX->renderer = SDL_CreateRenderer(AgentX->window, -1, SDL_RENDERER_ACCELERATED);
+        if (AgentX->renderer == NULL) {
             fprintf(log_file, "Failed to initialize the renderer.");
             fflush(log_file);
             return;
         }
 
-        SDL_RenderFillRect(renderer, NULL);
+        SDL_SetRenderDrawColor(AgentX->renderer, 0, 0, 0, 0);
+        SDL_RenderClear(AgentX->renderer);
     
-        SDL_UpdateWindowSurface(window);
         }
     }
 
-    return window;
+    return AgentX;
+}
+
+void kill_SDL2(SDL_Window* window, SDL_Renderer* renderer) {
+    //Destroy window	
+	SDL_DestroyRenderer( renderer );
+	SDL_DestroyWindow( window );
+	window = NULL;
+	renderer = NULL;
+
+	//Quit SDL subsystems
+	SDL_Quit();
 }
 
 //Initialize a 2D array
-**create_2d_array(int row, int col) {
-    //Create a fixed 2D array
-    //Challenge: Make this dynamically grow with user's input
+int **create_2d_array(int row, int col) {
+    int i, j;
     int** two_dee_array = (int**)malloc(row*sizeof(int*));
 
     for (i = 0; i < row; i++) {
-        two_dee_array[i] = (int*)malloc(col*sizeof(int*));
+        two_dee_array[i] = (int*)malloc(col*sizeof(int));
     }
     return two_dee_array;
 }
 
+void free_2d_array(int** array, int row) {
+    int i, j;
+    for (i = 0; i < row; i++) {
+        free(array[i]);
+    }
+    free(array);
+}
+
 //Render the boxes on the grid
-render_grid(int **grid, int row, int col, SDL_Window* window) {
+int render_grid(int **grid, SDL_Renderer* renderer) {
+    int i, j;
     
-    if (grid == NULL OR window == NULL) {
-        fprintf("NULL Pointer in render grid=%p, window=%p\n", (void*)grid, (void*) window);
+    if (grid == NULL OR renderer == NULL) {
+        fprintf("NULL Pointer in render grid=%p, renderer=%p\n", (void*)grid, (void*) renderer);
         fflush(log_file);
         return;
     }
     
-    SDL_Renderer* renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
     if (renderer == NULL) {
         fprintf(log_file, "Failed to initialize the renderer.");
         fflush(log_file);
         return;
     }
 
-    int i, j;
-
-    for (i = 0; i < row; i++) {
-        for (j = 0; j < col; j++) {
-            SDL_Rect* box_rect;
-            if (box_rect == NULL) {
+    for (i = 0; i < grid_row; i++) {
+        for (j = 0; j < grid_col; j++) {
+            SDL_Rect box_rect[NUM_RECTS];
+            if (&box_rect == NULL) {
                 fprintf(log_file, "Failed to initialize the rectangle.");
                 fflush(log_file);
+                return;
             }
-    
+                        
+            SDL_SetRenderDrawColor(renderer, 0, 0, 0, 0);
+            SDL_RenderClear(renderer);
             //Map out each of the specifications on the grid
-            box_rect->x = i* CELL_HEIGHT;
-            box_rect->y = j* CELL_WIDTH;
-            box_rect->w = CELL_WIDTH;
-            box_rect->h = CELL_HEIGHT;
-
+            if (grid[i][j] == 1) {
+            for (i = 0; i < NUM_RECTS; i++) {
+                box_rect[i].x = rand() % SCREEN_WIDTH;
+                box_rect[i].y = rand() % SCREEN_HEIGHT;
+                box_rect[i].w = CELL_WIDTH;
+                box_rect[i].h = CELL_HEIGHT;
+            
             //If both the row and columns are 1 (alive cell), then we fill it with 
             //the color black (0, 0, 0)
-            if (grid[i][j] == 1) {
                 //Fill rect returns 0 if it successful
-                if (SDL_RenderFillRect(renderer, box_rect) != 0) {
+                SDL_SetRenderDrawColor(renderer, 255, 255, 255, 0);
+                if (SDL_RenderFillRect(renderer, &box_rect) != 0) {
                     fprintf(log_file, "Failed to fill the rectangle: %s\n", SDL_GetError());
                     fflush(log_file);
-                    return;
+                    return -1;
+                    }
+                SDL_RenderPresent(renderer);
                 }
             }
         }
     }
-    
+
     //Create another grid for the next generation
         /* Why?
         * Reasoning: Once we implement the rules (which is basing a cell's life on its neighbours),
         then it is needed because the next generation will be the current generation which will also
         be needed in determining the state of the current generation
         */
-    next_gen_grid = create_2d_array(row, col);
-
+    int next_gen_grid;
+    
+    next_gen_grid = create_2d_array(grid_row, grid_col);
+    
+    int sum;
+    int neighbours, next_state;
     //Loop over the next generation (this goes on and on)
-    for (i = 0; i < row; i++) {
-        for (j = 0; j < col; j++) {    
-            
-            //Dealing with the edges
-            if ((i > row) OR (j > col)) {
-                //Condition for checking both rows
-                (i > row) ? (i % row) : (j % col);
-            }
-
-            if ((i < 0) OR (j < 0)) {
-                //Condition for checking both columns
-                (i < 0) ? ((i + row) + 1) : (j + col) + 1;
-            }
-            //Check out: What if both of them have the same condition?
+    for (i = 0; i < grid_row; i++) {
+        for (j = 0; j < grid_col; j++) {    
             
             sum = 0;
-            neighbours = count_neighbours(grid, i, j);
+            neighbours = count_neighbours(grid, i, j, sum);
         
             next_state = grid[i][j];
 
@@ -192,16 +224,23 @@ render_grid(int **grid, int row, int col, SDL_Window* window) {
     grid = next_gen_grid;
 }
 
-count_neighbours(int **grid, int x, int y) {
+int count_neighbours(int **grid, int x, int y, int sum) {
    int i, j;
+   int row, col;
 
     //Count the neighbours by determining the surroundings
     //of the cell (top right, bottom right, etc.)
-   for (i = -1; i < 2; i++) {
-    for (j = -1; j < 2; j++) {
-        sum += grid[x + i][y + j];  
-   }
-    sum -= grid[x][y];
-    return sum;
+   for (i = 0; i < 2; i++) {
+    for (j = 0; j < 2; j++) {
+        row = (x + i) % grid_row;
+        col = (y + j) % grid_col;
+
+        fprintf(log_file, "row: %d, col: %d\n", row, col);
+        fflush(log_file);
+
+        sum += grid[row][col];  
     }
+    sum -= grid[x][y];
+    }
+    return sum;
 }
