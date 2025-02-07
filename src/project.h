@@ -5,13 +5,11 @@
 
 #define SDL_MAIN_HANDLED
 
-#define SCREEN_WIDTH  640
-#define SCREEN_HEIGHT 480
+#define SCREEN_WIDTH  400
+#define SCREEN_HEIGHT 400
 
-#define CELL_WIDTH 10
-#define CELL_HEIGHT 10
-
-#define NUM_RECTS 100
+#define CELL_WIDTH 20
+#define CELL_HEIGHT 20
 
 #define OR ||
 #define AND &&
@@ -52,3 +50,4 @@ int render_grid(int **grid, SDL_Renderer* renderer);
 int count_neighbours(int **grid, int x, int y, int sum);
 
 void kill_SDL2(SDL_Window* window, SDL_Renderer* renderer);
+

@@ -1,9 +1,8 @@
 # Conways-Game-of-Life
-A version of Conway's Game of LIfe made in C
+A version of Conway's Game of LIfe made in C using SDL2
 
-To do list for tomorrow: 02-02-2025:
-- Try to get more familiar with the SDL2 engine
-- The reason why it may not be working is because I'm not implementing SDL2 with it and not drawing with it. Hence, the window would only show black.
-- Try to explore font sizes, graphics, etc.
-    
+To do list:
+- Try to animate the game of life
+    - Try to find a way to loop over grid[i][j] in to continously apply the rules
+    - 
 
