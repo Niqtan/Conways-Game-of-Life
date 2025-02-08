@@ -5,8 +5,8 @@
 
 #define SDL_MAIN_HANDLED
 
-#define SCREEN_WIDTH  400
-#define SCREEN_HEIGHT 400
+#define SCREEN_WIDTH  600
+#define SCREEN_HEIGHT 600
 
 #define CELL_WIDTH 20
 #define CELL_HEIGHT 20
@@ -32,22 +32,24 @@ int** create_2d_array(int row, int col);
 */
 void free_2d_array(int** array, int row);
 
-/* render_grid: uses the 2d array and initializes a grid for the game
-* @param a: An address to the working grid which is just a 2D array
-* @param b: @param a: the fixed number of rows to work with
-* @param c: @param a: the fixed number of columns to work with
-* @param d: window to be working on using a pointer to SDL_Window datatype
-* @return: confirmation if it was successful
-*/
-int render_grid(int **grid, SDL_Renderer* renderer);
-
 /* count_neighbours: uses an algorithm to count surrounding neighbours position
 * @param a: The next generation grid
 * @param b: the current column number on the grid
 * @param c: the current row number on the grid
 * @return: int for the surrounding neighbours
 */
-int count_neighbours(int **grid, int x, int y, int sum);
+int count_neighbours(int** grid, int x, int y, int sum);
 
+/* animate_grid: Implements the rules of Conway's game of life
+* @param a: the cells to draw to update
+* @param b: the renderer for the final look
+* @param c: the grid to handle the backbuffer
+*/
+void animate_grid(SDL_Rect box_rect, SDL_Renderer* renderer, int** grid);
+
+/* kill_SDL2: destroys the renderer and the window
+* @param a: the window to be destroyed
+* @param b: the renderer to be killed
+*/
 void kill_SDL2(SDL_Window* window, SDL_Renderer* renderer);
 

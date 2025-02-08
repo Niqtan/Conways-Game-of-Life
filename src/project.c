@@ -10,13 +10,16 @@ FILE* log_file;
 struct SDL2 {
     SDL_Window* window;
     SDL_Renderer* renderer;
+    SDL_Rect box_rect;
+    int** grid;
 } foo;
+
 
 int main(int argc, char* argv[]) {
     int min, max;
     int i, j;
 
-    int** grid;
+    struct SDL2 *x = &foo;
 
     log_file = fopen("debug.txt", "w+");
     if (log_file == NULL) {
@@ -25,8 +28,8 @@ int main(int argc, char* argv[]) {
     }
 
     //Initialize the first 2d array
-    grid = create_2d_array(grid_row, grid_col);
-    if (grid == NULL) {
+    x->grid = create_2d_array(grid_row, grid_col);
+    if (x->grid == NULL) {
         fprintf(log_file, "Failed to initialize 2D Grid\n");
         fflush(log_file);
         return 1;
@@ -39,36 +42,42 @@ int main(int argc, char* argv[]) {
 
             //The algorithm here is to generate a 1 or 0 depending on the rand num 
             //So that picking of numbers really is random
-            grid[i][j] = (rand() % (max-min + 1)) + min;
+            x->grid[i][j] = (rand() % (max-min + 1)) + min;
         }
     }
 
     //Create a var with data type SDL_Window which
     //can either return an instance of window or NULL 
-    struct SDL2* Sigma_Boy = init_SDL();
-    if (Sigma_Boy->window == NULL) {
+    x = init_SDL();
+    if (x->window == NULL) {
         fprintf(log_file, "Failed to initialize SDL\n");
         fflush(log_file);
         return 1;
     }
 
-    //Initialize 
-    render_grid(grid, Sigma_Boy->renderer);
+    bool quit = false;
 
+    SDL_Rect box_rect = x->box_rect;    
     //An event to not close out the window unless
     //the X button on the top right has been pressed
     SDL_Event e; 
-        bool quit = false;
         while( quit == false )
-        { while( SDL_PollEvent( &e ) ) { 
+        {    
+        while( SDL_PollEvent( &e ) ) { 
         if( e.type == SDL_QUIT ) { 
             quit = true;
             } 
         }
+
+        //Loop over for animation
+        animate_grid(box_rect, x->renderer, x->grid);
+
+        //Delay for program to breathe
+        SDL_Delay(50);
     }
 
-    free_2d_array(grid, grid_row);
-    kill_SDL2(Sigma_Boy->window, Sigma_Boy->renderer);
+    free_2d_array(x->grid, grid_row);
+    kill_SDL2(x->window, x->renderer);
     fclose(log_file);
 
     return 0;
@@ -83,7 +92,7 @@ struct SDL2* init_SDL() {
     {
         fprintf(log_file, "Failed to initialize SDL: %s\n", SDL_GetError());
         fflush(log_file);
-        return;
+        return NULL;
     }
     else {
         AgentX->window = SDL_CreateWindow( "Conway's Game of Life", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, SCREEN_WIDTH, SCREEN_HEIGHT, SDL_WINDOW_SHOWN );
@@ -99,12 +108,8 @@ struct SDL2* init_SDL() {
             fflush(log_file);
             return;
         }
-
-        SDL_SetWindowBordered(AgentX->window, SDL_TRUE);
-        SDL_UpdateWindowSurface(AgentX->window);
         SDL_SetRenderDrawColor(AgentX->renderer, 255, 255, 255, 0);
-        SDL_RenderClear(AgentX->renderer);
-    
+        SDL_RenderClear(AgentX->renderer);    
         }
     }
 
@@ -141,137 +146,78 @@ void free_2d_array(int** array, int row) {
     free(array);
 }
 
-//Render the boxes on the grid
-int render_grid(int **grid, SDL_Renderer* renderer) {
-    int i, j, x, y;
-    
-    if (grid == NULL OR renderer == NULL) {
-        fprintf("NULL Pointer in render grid=%p, renderer=%p\n", (void*)grid, (void*) renderer);
-        fflush(log_file);
-        return;
-    }
-    
-    if (renderer == NULL) {
-        fprintf(log_file, "Failed to initialize the renderer.");
-        fflush(log_file);
-        return;
-    }
-
-    //Clear out the previous backbuffer in order
-    //to fill in the white cells
-    SDL_SetRenderDrawColor(renderer, 255, 255, 255, 0);
-    if (SDL_RenderClear(renderer) != 0) {
-        fprintf(log_file, "Stop giving me seg faults!");
-        fflush(log_file);
-    }
-
-    
-    SDL_Rect box_rect;
-    if (&box_rect == NULL) {
-        fprintf(log_file, "Failed to initialize the rectangle.");
-        fflush(log_file);
-        return;
-    }
-
-    SDL_SetRenderDrawColor(renderer, 128, 128, 128, 255);
-    
-   //Draw the borders
-   //Draw vertical lines
-   for (x = 0; x <= SCREEN_HEIGHT; x += CELL_HEIGHT) {
-        SDL_RenderDrawLine(renderer, x, 0, x, SCREEN_HEIGHT);
-   }
-
-   //Draw the horizontal lines
-   for (y = 0; y <= SCREEN_WIDTH; y += CELL_WIDTH) {
-        SDL_RenderDrawLine(renderer, 0, y , SCREEN_WIDTH, y);
-   }
-
-    //Drawing the rectangles
-    for (i = 0; i < grid_row; i++) {
-        for (j = 0; j < grid_col; j++) {               
-            //Map out each of the specifications on the grid
-            if (grid[i][j] == 1) {
-                //To align each rectangle like of grid's, modify
-                // the x and y values
-                box_rect.x = i * CELL_WIDTH;
-                box_rect.y = j * CELL_HEIGHT;
-                box_rect.w = CELL_WIDTH;
-                box_rect.h = CELL_HEIGHT;
-            
-             //If both the row and columns are 1 (alive cell), then we fill it with 
-                //the color white (0, 0, 0)
-                SDL_SetRenderDrawColor(renderer, 0, 0, 0, 0);
-                if (SDL_RenderFillRect(renderer, &box_rect) != 0) {
-                    fprintf(log_file, "Failed to fill the rectangle: %s\n", SDL_GetError());
-                    fflush(log_file);
-                    return -1;
-                    }
-                }
-            }
-        }
-          
-    SDL_RenderPresent(renderer);
-    
-    //Create another grid for the next generation
-        /* Why?
-        * Reasoning: Once we implement the rules (which is basing a cell's life on its neighbours),
-        then it is needed because the next generation will be the current generation which will also
-        be needed in determining the state of the current generation
-        */
+void animate_grid(SDL_Rect box_rect, SDL_Renderer* renderer, int** grid) {
     int** next_gen_grid;
+    int sum, i, j, x, y;
+    int neighbours, next_state;
     
     next_gen_grid = create_2d_array(grid_row, grid_col);
     
-    int sum;
-    int neighbours, next_state;
-    //Loop over the next generation (this goes on and on)
-    
-    /*
-    To animation this, we could probably use an
-    event in SDL events. We want to keep looping until
-    all of the cells are considered dead
-    
-    */
-    
+    //Compute for the final result
     for (i = 0; i < grid_row; i++) {
         for (j = 0; j < grid_col; j++) { 
             
             sum = 0;
+            //Count the amount of neighbours the current cell has
             neighbours = count_neighbours(grid, i, j, sum);
-        
+            
+            //Assign the current state of the cell
             next_state = grid[i][j];
 
+            //Copy it to the next generation grid for comparison
             if (next_state == 1 AND (neighbours < 2 OR neighbours > 3)) {
-                grid[i][j] = 0;
+                next_gen_grid[i][j] = 0;
             }
             else if (next_state == 0 AND neighbours == 3) {
-                grid[i][j] = 1;
+                next_gen_grid[i][j] = 1;
             }
             else {
-                grid[i][j] = next_state;
-            }
-    
-            switch (grid[i][j]) {
-                case 0: 
-                    SDL_SetRenderDrawColor(renderer, 255, 255, 255, 0);
-                    break;
-                case 1:
-                    SDL_SetRenderDrawColor(renderer, 0, 0, 0, 0);
-                    break;
-                default:
-                    SDL_SetRenderDrawColor(renderer, 255, 255, 255, 0);
-                    break;
-            }
-            
-            if (SDL_RenderFillRect(renderer, &box_rect) != 0) {
-                fprintf(log_file, "Failed to fill the rectangle: %s\n", SDL_GetError());
-                fflush(log_file);
-                return -1;
+                next_gen_grid[i][j] = next_state;
             }
         }
     }
-    SDL_RenderPresent(renderer);           
-    grid = next_gen_grid;
+
+    //Final result
+    for (i = 0; i < grid_row; i++) {
+        for (j = 0; j < grid_col; j++) {        
+            grid[i][j] = next_gen_grid[i][j];;
+        }
+    }
+    free_2d_array(next_gen_grid, grid_row);
+
+    for (x = 0; x <= SCREEN_HEIGHT; x += CELL_HEIGHT) {
+        SDL_RenderDrawLine(renderer, x, 0, x, SCREEN_HEIGHT);
+    }
+
+    //Draw the horizontal lines
+    for (y = 0; y <= SCREEN_WIDTH; y += CELL_WIDTH) {
+        SDL_RenderDrawLine(renderer, 0, y , SCREEN_WIDTH, y);
+    }
+    //Draw that final result
+    for (i = 0; i < grid_row; i++) {
+        for (j = 0; j < grid_col; j++) {
+            
+            //Modify the existing boxes
+            box_rect.x = i * CELL_WIDTH;
+            box_rect.y = j * CELL_HEIGHT;
+            box_rect.w = CELL_WIDTH;
+            box_rect.h = CELL_HEIGHT;
+
+            if (grid[i][j] == 1){
+                SDL_SetRenderDrawColor(renderer, 0, 0, 0, 0);
+            }
+            else  {
+                SDL_SetRenderDrawColor(renderer, 255, 255, 255, 0);
+            }
+
+            if (SDL_RenderFillRect(renderer, &box_rect) != 0) {
+                fprintf(log_file, "Failed to fill the rectangle: %s\n", SDL_GetError());
+                fflush(log_file);
+                return;
+            }
+        }
+    }
+    SDL_RenderPresent(renderer);         
 }
 
 int count_neighbours(int **grid, int x, int y, int sum) {
@@ -280,17 +226,25 @@ int count_neighbours(int **grid, int x, int y, int sum) {
 
     //Count the neighbours by determining the surroundings
     //of the cell (top right, bottom right, etc.)
-   for (i = 0; i < 2; i++) {
-    for (j = 0; j < 2; j++) {
-        row = (x + i) % grid_row;
-        col = (y + j) % grid_col;
+   
+    //Bonus: you may experiment with the values of i and j as conditions
+    // just to check what other cellular automata you can get
+     for (i = -1; i < 2; i++) {
+    for (j = -1; j < 2; j++) {
 
-        fprintf(log_file, "row: %d, col: %d\n", row, col);
+        //Algorithm here is that we should get the position of the current cell
+        //and add that to the ith neighbour, relative to the grid row or column.
+        row = (x + i + grid_row) % grid_row;
+        col = (y + j + grid_col) % grid_col;
+
+        fprintf(log_file, "rows: %d, cols: %d\n", row, col);
         fflush(log_file);
 
         sum += grid[row][col];  
+        }
     }
+
+    //Exclude the current cell as neighbour
     sum -= grid[x][y];
-    }
     return sum;
 }
